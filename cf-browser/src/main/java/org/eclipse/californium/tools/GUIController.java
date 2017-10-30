@@ -34,6 +34,8 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -104,6 +106,19 @@ public class GUIController {
     private void initialize() {
         uriBox.itemsProperty().get().add(DEFAULT_URI);
         uriBox.getSelectionModel().select(0);
+        // ComboBox has bug that entered value without [ENTER] is not commited --> workaround
+        // https://bugs.openjdk.java.net/browse/JDK-8151129
+        uriBox.focusedProperty().addListener(new ChangeListener<Object>() {
+			@Override
+			public void changed(ObservableValue<?> observable, Object oldValue, Object newValue) {
+				if(newValue != null && newValue instanceof Boolean && !((Boolean)newValue)) {
+					String sNewValue = uriBox.getEditor().getText();
+					uriBox.setValue(sNewValue);
+					log.info("Update UriBox value to " + sNewValue);
+				}
+			}
+		});
+
         // Initialize the
         InputStream imgIS = getClass().getResourceAsStream("/org/eclipse/californium/tools/images/unknown.png");
         Image unknown = new Image(imgIS);
